@@ -1,9 +1,8 @@
 import random
 import timeit
 import statistics
-import sys
-from typing import List
 import matplotlib.pyplot as plt
+from typing import List
 
 def insertion_sort(arr: List[int]) -> List[int]:
     # Сортування вставками
@@ -56,11 +55,20 @@ def generate_datasets(size: int):
 
 def measure_time(algorithm, data: List[int], number: int = 10) -> float:
     # Вимірювання часу виконання за допомогою timeit
-    setup_code = f'''
+    if algorithm.__name__ == "sorted":
+        # Для вбудованої функції sorted не потрібен імпорт
+        setup_code = f'''
+data = {data}
+'''
+        stmt = "sorted(data)"
+    else:
+        # Для інших алгоритмів імпортуємо з модуля
+        setup_code = f'''
 from sorting_comparison import {algorithm.__name__}
 data = {data}
 '''
-    stmt = f"{algorithm.__name__}(data)"
+        stmt = f"{algorithm.__name__}(data)"
+    
     times = timeit.repeat(stmt, setup=setup_code, number=number, globals=globals())
     return statistics.mean(times) / number  # Середній час на одну ітерацію
 
@@ -119,7 +127,10 @@ def main():
     sizes = [100, 1000, 5000, 10000]  # Розміри наборів даних
     results = run_benchmarks(sizes)
     save_results(results)
-    plot_results(results, sizes)
+    try:
+        plot_results(results, sizes)
+    except Exception as e:
+        print(f"Помилка при створенні графіків: {str(e)}")
     
     # Аналіз та висновки
     print("\nВисновки:")
